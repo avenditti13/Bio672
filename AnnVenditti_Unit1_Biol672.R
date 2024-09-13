@@ -129,6 +129,19 @@ print("Benjamini-Hochberg Corrected p-values:")
 print(benjamini_hochberg_pvalues)
 
 WHAT CHATGPT SAYS: NOT IN R YET BECAUSE INCORRECT USE OF CAT AND NOT PRINT
+# Save the error bar plot to a PDF file
+ggsave("error_bar_plot.pdf", plot = error_bar_plot, width = 8, height = 6)
+
+# Perform pairwise t-tests
+pairwise_results <- pairwise.t.test(plant_data$weight, plant_data$group, p.adjust.method = "none")
+
+# Apply Bonferroni correction
+bonferroni_p_values <- p.adjust(pairwise_results$p.value, method = "bonferroni")
+
+# Apply Benjamini-Hochberg correction
+benjamini_hochberg_p_values <- p.adjust(pairwise_results$p.value, method = "BH")
+
+# Export results to a text file
 sink("results_summary.txt")
 
 cat("ANOVA Results:\n")
@@ -157,4 +170,3 @@ sink()
 
 # Confirmation message
 cat("Results have been saved to 'results_summary.txt' and 'error_bar_plot.pdf'.\n")
-
