@@ -141,32 +141,104 @@ bonferroni_p_values <- p.adjust(pairwise_results$p.value, method = "bonferroni")
 # Apply Benjamini-Hochberg correction
 benjamini_hochberg_p_values <- p.adjust(pairwise_results$p.value, method = "BH")
 
-# Export results to a text file
-sink("results_summary.txt")
+####exporting outputs using sink() to txt and pdf files
+#include verbal interpretation to the screen and output files
 
-cat("ANOVA Results:\n")
-cat(anova_summary, sep = "\n")
+#save error bar plot as .pdf:
+ggsave("error_bar_plot_plant.pdf", plot = error_plantgrowth)
+#sink() export files with separate lines between each output w/ sep=\n and cat(\n):
+sink("plant_growth_summary_results.txt")
+
+cat("Plant Growth ANOVA Results:\n")
+cat(plant_anova_summary, sep = "\n")
+cat('\n')
+
+cat("Plant Growth Pairwise T Test:\n")
+print(plant_pairwise_results)
 cat("\n")
 
-cat("Pairwise t-Test Results (Raw p-values):\n")
-print(pairwise_results$p.value)
+cat("Pairwise T Test Bonferroni Corrected Pvalues:\n")
+print(bonferroni_pvalues)
 cat("\n")
 
-cat("Pairwise t-Test Results (Bonferroni Corrected p-values):\n")
-print(bonferroni_p_values)
+cat("Pairwise T Test Benjamini-Hochberg Corrected Pvalues:\n")
+print(benjamini_hochberg_pvalues)
 cat("\n")
-
-cat("Pairwise t-Test Results (Benjamini-Hochberg Corrected p-values):\n")
-print(benjamini_hochberg_p_values)
-cat("\n")
-
-cat("Interpretation:\n")
-cat("1. The ANOVA test result provides the F-statistic and p-value to assess whether there are significant differences among the groups.\n")
+##giving verbal interpretations of what each printed result means/shows
+cat("Result Interpretations:\n")
+cat("1. ANOVA test results provides the F-statistic and p-value that assess if there are significant differences among groups.\n")
 cat("2. Pairwise t-tests compare each pair of groups to identify which pairs differ significantly.\n")
-cat("3. Bonferroni correction adjusts p-values to account for multiple comparisons conservatively.\n")
-cat("4. Benjamini-Hochberg correction controls the false discovery rate, which is less conservative than Bonferroni.\n")
+cat("3. Bonferroni correction adjusts p-values to account for multiple comparisons.\n")
+cat("4. Benjamini-Hochberg correction adjusts for the false discovery rate.\n")
 
 sink()
 
-# Confirmation message
-cat("Results have been saved to 'results_summary.txt' and 'error_bar_plot.pdf'.\n")
+#############FIFTH QUESTION#############
+#Kruskal Wallis applied to Plant Growth data used in ANOVA test
+View(PlantGrowth)
+Plant_kruskal_test <- kruskal.test(weight ~ group, data = myplantdata)
+print(Plant_kruskal_test)
+
+##have to subset data into control and test groups to compare weight within 2 groups
+##also create data frame with the 2 groups to use in tests for ease
+Plant_ctrl <- subset(PlantGrowth, group == "ctrl")$weight
+Plant_trt1 <- subset(PlantGrowth, group == "trt1")$weight
+Plant_newgrouped_data <- data.frame(Plant_ctrl, Plant_trt1)
+
+##pearson correlation test of regrouped Plant Growth data frame
+my_pearson_correlation <- cor.test(Plant_ctrl, Plant_trt1, method = "pearson")
+print(my_pearson_correlation)
+
+##spearman correlation test of regrouped Plant Growth data frame
+my_spearman_correlation <- cor.test(Plant_ctrl, Plant_trt1, method = "spearman")
+print(my_spearman_correlation)
+
+##pearson corr scatter plot:
+scatter_pearson_plot <- ggplot(Plant_newgrouped_data, aes(x = Plant_ctrl, y = Plant_trt1)) +
+  geom_point(color = "blue") +
+  geom_smooth(method = "lm", color = "red", se = FALSE) +  # Add a linear regression line for Pearson correlation
+  labs(title = "Scatterplot of Ctrl vs Trt1 (Pearson Correlation)",
+       x = "Plant Ctrl Weight", 
+       y = "Plant Trt1 Weight") +
+  theme_minimal()
+print(scatter_pearson_plot)
+
+##spearmans corr scatter plot:
+scatter_spearman_plot <- ggplot(Plant_newgrouped_data, aes(x = Plant_ctrl, y = Plant_trt1)) +
+  geom_point(color = "green") +
+  geom_smooth(method = "loess", color = "darkorange", se = FALSE) +  # Add a smooth line for Spearman correlation
+  labs(title = "Scatterplot of Ctrl vs Trt1 (Spearman Rank Correlation)",
+       x = "Group Ctrl Weight", 
+       y = "Group Trt1 Weight") +
+  theme_minimal()
+print(scatter_spearman_plot)
+
+##one sample KS test of normality on Plant Growth data
+#####INPUT CODE HERE###########
+
+##Printing/export results and plots
+sink("Normality_Assumption_analyses.txt")
+
+cat("Kruskal-Wallis Test Results:\n") #Kruskal wallis test print
+print(Plant_kruskal_test)
+cat("\nInterpretation:\n")
+cat("The Kruskal-Wallis test checks for differences between the medians of the groups.\n")
+cat("If the p-value is less than the significance level we reject the null hypothesis that all groups have the same median.\n")
+
+cat("Pearson Correlation Results:\n") #pearsons test print
+print(my_pearson_correlation)
+print(scatter_pearson_plot)
+cat("\n")
+
+cat("Spearman Correlation Results:\n") #spearmans test print
+print(my_spearman_correlation)
+print(scatter_spearman_plot)
+cat("\n")
+
+cat("Interpretation:\n")
+cat("1. Pearson correlation assesses the linear relationship between the two groups.\n")
+cat("2. Spearman rank correlation assesses the monotonic relationship, which is more robust to non-linearity and outliers.\n")
+
+###INPUT ONE KS TEST PRINTING CODE####
+
+sink()
