@@ -236,9 +236,67 @@ print(scatter_spearman_plot)
 cat("\n")
 
 cat("Interpretation:\n")
-cat("1. Pearson correlation assesses the linear relationship between the two groups.\n")
-cat("2. Spearman rank correlation assesses the monotonic relationship, which is more robust to non-linearity and outliers.\n")
+cat("1. Pearson correlation assesses the linear relationship between the two groups. Our p-value is greater than 0.05 meaning there is a most likely not a linear relationships here.\n")
+cat("2. Spearman rank correlation assesses the monotonic relationship, which is more robust to non-linearity and outliers. Our p-value is greater than 0.05 meaning the relationship between these vairables is most liekly due to random chance.\n")
 
-###INPUT ONE KS TEST PRINTING CODE####
+cat("One-Sample Kolmogorov-Smirnov Test for Normality Results:\n") #One sample KS Test
+print(ks_test_plantgrowth)
+cat("\nInterpretation:\n")
+cat("The KS test compares the empirical distribution of the sample against the theoretical normal distribution.\n")
+cat("Since our p-value is greater than 0.05, we fail to reject the null hypothesis, indicating that the data does follow a normal distribution.\n")
+
+cat("In conclusion, these tests do not apeear consistent as the one sample KS test results suggest that we cannot reject normal distribution in the data and yet both pearson's and spearman's correlation demonstrated no linear or monotonic relationhsip.\n")
 
 sink()
+
+
+#########SIXTH QUESTION###########
+#running simple linear regression to compare #5 results
+PlantGrowth$group <- as.factor(PlantGrowth$group) #make group into factor for regression
+Plant_linearmodel <- lm(weight ~ group, data = PlantGrowth)
+summary(Plant_linearmodel)
+
+##create text file for lm summary
+sink("PlantGrowth_linear_regression_summary.txt")
+cat("Simple Linear Regression Summary for PlantGrowth Dataset:\n")
+print(summary(Plant_linearmodel))
+sink()
+
+#plotting lm of plant growth
+##weight is dependent while group is categorical independent
+
+##plot regression from visualizing boxplot of PlantGrowth
+Plant_groupmeans <- aggregate(weight ~ group, data = PlantGrowth, mean) #group means for boxplot
+Plant_groupsd <- aggregate(weight ~ group, data = PlantGrowth, sd) #sd for error bars
+
+lm_Plantgrowth <- ggplot(Plant_groupmeans, aes(x = group, y = weight, fill = group)) +
+  geom_bar(stat = "identity", color = "black", alpha = 0.7) +
+  geom_errorbar(aes(ymin = weight - Plant_groupsd$weight, ymax = weight + Plant_groupsd$weight), width = 0.2) +
+  labs(title = "Mean Plant Weight by Group with Error Bars",
+       x = "Group",
+       y = "Mean Weight") +
+  theme_minimal() +
+  scale_fill_manual(values = c("orange", "green", "purple"))
+print(lm_Plantgrowth)
+
+##exporting and printing 6th question lm regression results
+##create text file for lm summary
+sink("PlantGrowth_linear_regression_summary.txt")
+cat("Simple Linear Regression Summary for PlantGrowth Dataset:\n")
+print(summary(Plant_linearmodel))
+
+cat("Linear Regression Plotted as a Box Plot:\n")
+print(lm_Plantgrowth)
+
+cat("Interpretation:\n")
+cat("GroupTrt1 is not significantly different from the control, GroupTrt2 is significantly different from the control group in weight.\n")
+cat("The F-statistic and p-value indicates that treatment group has an influence of plant weight.\n")
+cat("This is different from the correlation tests that suggested normal distribution as well as the differences coming from simple random chance.\n")
+cat("All in all, the linear regression versus correlation tests do not have similar results.\n")
+cat("Regression should be used when you wish to evaluate the relationship between a dependent and one or more independent vairables.\n")
+cat("Correlation is used when you want to measure the strength/direction of a linear relationship.\n")
+
+sink()
+
+
+########SEVENTH QUESTION##########
