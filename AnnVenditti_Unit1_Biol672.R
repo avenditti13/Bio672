@@ -283,10 +283,10 @@ print(lm_Plantgrowth)
 ##create text file for lm summary
 sink("PlantGrowth_linear_regression_summary.txt")
 cat("Simple Linear Regression Summary for PlantGrowth Dataset:\n")
-print(summary(Plant_linearmodel))
+print(summary(Plant_linearmodel)) ##lm results stats
 
 cat("Linear Regression Plotted as a Box Plot:\n")
-print(lm_Plantgrowth)
+print(lm_Plantgrowth)  #lm plot
 
 cat("Interpretation:\n")
 cat("GroupTrt1 is not significantly different from the control, GroupTrt2 is significantly different from the control group in weight.\n")
@@ -300,3 +300,7 @@ sink()
 
 
 ########SEVENTH QUESTION##########
+#using R generated data again called Palmer Penguins
+install.packages("palmerpenguins")
+library(palmerpenguins)
+data(penguins)
