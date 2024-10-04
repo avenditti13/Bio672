@@ -304,3 +304,105 @@ sink()
 install.packages("palmerpenguins")
 library(palmerpenguins)
 data(penguins)
+
+##############EIGHTH QUESTION############
+#Clean up penguins data set to omit empties
+penguins_clean <- na.omit(penguins)
+
+#Dependent Variables (Quantitative Measurements): 
+#Bill Length, Bill Depth, Flipper Length, Body Mass
+#Independent Variable (Categorical): Species
+
+Peng_dependent_vars <- cbind(penguins_clean$bill_length_mm, 
+                        penguins_clean$bill_depth_mm, 
+                        penguins_clean$flipper_length_mm, 
+                        penguins_clean$body_mass_g) #Combine depen. variables
+penguins_manova <- manova(Peng_dependent_vars ~ species, data = penguins_clean)
+Manova_summary <- summary(penguins_manova)
+Pillai_test <- summary(penguins_manova, test = "Pillai") ##common MANOVA test
+
+#summary.aov() creates break MANOVA into individual ANOVA
+Peng_anovaresults <- (summary.aov(penguins_manova))
+
+##printing to screen or output
+sink("Penguin_MANOVA_Results.txt")
+
+cat("MANOVA Results:\n")
+print(Manova_summary)
+print(Pillai_test)
+
+cat("Univariate ANOVA Results:\n")
+print(Peng_anovaresults)
+
+cat("Interpretations:\n")
+#MANOVA TEST
+cat("The MANOVA test indicates whether combined dependent variables (bill length, bill depth, flipper length, and body mass) differ across penguin species.\n")
+cat("The MANOVA results suggest that there are significant differences between penguin species across the combined dependent variables (bill length, bill depth, flipper length, and body mass).\n")
+#ANVOVA TEST
+cat("The univariate ANOVA test indicates show which specific dependent variables (bill length, bill depth, flipper length, and body mass) differ across species.\n")
+cat("The univariate ANOVA results show that each individual variable is significantly different across species.\n")
+sink()
+
+
+
+###########NINTH QUESTION########
+#predicting body mass
+penguins_lm <- lm(body_mass_g ~ bill_length_mm + bill_depth_mm + flipper_length_mm, data = penguins_clean)
+Peng_lm_summary <- summary(penguins_lm)
+
+#finding the best predictor of body mass
+best_predictor <- Peng_lm_summary$coefficients[which.max(abs(Peng_lm_summary$coefficients[, "t value"])), ]
+
+###using Adelie Penguins for one category test
+adelie_penguins <- subset(penguins_clean, species == "Adelie")
+
+penguins_lm_adelie <- lm(body_mass_g ~ bill_length_mm + bill_depth_mm + flipper_length_mm, data = adelie_penguins)
+lm_summary_adelie <- summary(penguins_lm_adelie)
+
+#best predictor of body weight fro adelie penguins
+best_predictor_adelie <- lm_summary_adelie$coefficients[which.max(abs(lm_summary_adelie$coefficients[, "t value"])), ]
+
+##sinking to screen with interpretations
+sink(file = "Penguins_Linear_Regressions.txt")
+cat("Multiple Regression Results (All Species):\n")
+print(Peng_lm_summary)
+cat("All Species Interpretation:\n")
+cat("The multiple regression model assesses how body mass is predicted by bill length, bill depth, and flipper length.\n")
+cat("The best predictor for all species is flipper length since it has the largest t-value and teh smallest p-value.\n")
+
+cat("Multiple Regression For Adelie Species:\n")
+print(lm_summary_adelie)
+cat("Adelie Interpretation:\n")
+cat("The best predictor for Adelie penguins is also flipper length for the same reasons.\n")
+sink()
+
+
+###########TENTH QUESTION#########
+#composite vairable is ratio of flipper length to body mass
+penguins_clean$flipper_body_ratio <- penguins_clean$flipper_length_mm / penguins_clean$body_mass_g
+
+#ANCOVA test on comp. variable
+ancova_model <- aov(body_mass_g ~ bill_length_mm + flipper_body_ratio, data = penguins_clean)
+summary(ancova_model)
+
+#SInk or export to screen
+sink("Penguins_ANCOVA_Test_Results.txt")
+
+cat("ANCOVA Results:\n")
+print(summary(ancova_model))
+
+cat("Interpretation:\n")
+cat("This ANCOVA model examines how body mass (dependent variable) is predicted by bill length (independent variable) while controlling for the flipper length to body mass ratio (covariate).\n")
+cat("Since bill length is significant, it means that bill length significantly influences body mass even with accoutning for my composite variable.\n")
+cat("The composite flipper body ratio is also significant meaning that the body mass flipper ratio also affects body mass.\n")
+sink()
+
+
+
+
+##########ELEVENTH QUESTION#########
+##favorite hypothesis test or statistical method: 
+
+#original IRIS data import
+originalIRIS_data <- read_csv("C:/Users/Ann/OneDrive/Iris_tab excel.csv")
+##corrupted data import
