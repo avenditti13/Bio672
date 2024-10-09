@@ -401,8 +401,50 @@ sink()
 
 
 ##########ELEVENTH QUESTION#########
-##favorite hypothesis test or statistical method: 
+##favorite hypothesis test or statistical method: one-way anova test
 
 #original IRIS data import
 originalIRIS_data <- read_csv("C:/Users/Ann/OneDrive/Iris_tab excel.csv")
 ##corrupted data import
+iris_tab_smnoise <- read_csv("Bio Stats RIT/iris_tab_smnoise.txt.csv")
+View(iris_tab_smnoise_txt)
+iris_tab_randclass <- read_csv("Bio Stats RIT/iris_tab_randclass.csv")
+View(iris_tab_randclass)
+iris_tab_no_setosa <- read_csv("Bio Stats RIT/iris_tab_no_setosa.csv")
+View(iris_tab_no_setosa)
+
+##ORIGINAL ISRIS ANOVA TEST (sepal length across species)
+originalIris_anova <- aov(Sepal.Length ~ Species, data = iris)
+originalIris_summary <- summary(originalIris_anova)
+print(originalIris_summary)
+
+##Corrupted Iris ANOVA tests (sepal length across species)
+corrupted_anova1 <- aov(sepal_length ~ species, data = iris_tab_smnoise)
+summ_corrupt1 <- summary(corrupted_anova1)
+
+corrupted_anova2 <- aov(sepal_length ~ species, data = iris_tab_randclass)
+summ_corrupt2 <- summary(corrupted_anova2)
+
+corrupted_anova3 <- aov(sepal_length ~ species, data = iris_tab_no_setosa)
+summ_corrupt3 <- summary(corrupted_anova3)
+
+sink("Corrupted_Iris_data_ANOVA")
+
+cat("Iris noise data\n")
+print(corrupted_anova1)
+print(summ_corrupt1)
+cat("Interpretation:\n")
+cat("Despite the added noise, the test still finds a highly significant difference in Sepal Length between species, suggesting the test is robust to small amounts of noise in the data.\n")
+
+cat("Randomized Iris data\n")
+print(corrupted_anova2)
+print(summ_corrupt2)
+cat("Interpretation:\n")
+cat("With species labels randomized, the ANOVA fails to find a significant difference in Sepal Length between species, which indicates that the test is highly sensitive to changes in category labels.\n")
+
+cat("Iris data missing Setosa Species\n")
+print(corrupted_anova3)
+print(summ_corrupt3)
+cat("Interpretation:\n")
+cat("There is a significant difference in Sepal Length between the remaining species (likely versicolor and virginica).\n")
+sink()
