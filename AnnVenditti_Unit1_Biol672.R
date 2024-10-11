@@ -448,3 +448,95 @@ print(summ_corrupt3)
 cat("Interpretation:\n")
 cat("There is a significant difference in Sepal Length between the remaining species (likely versicolor and virginica).\n")
 sink()
+
+
+
+########TWELFTH QUESTION#######
+#import purchase data from extended iris data folder github
+iris_csv_purchase <- read_csv("C:/Users/Ann/Downloads/iris_csv_purchase.csv")
+View(iris_csv_purchase)
+##fact.anal and prin.comp pca and factor analysis
+
+##PCA
+##columns 8 and 9 are likert scale
+pca_purchase <- princomp(iris_csv_purchase[, 8:9], cor = TRUE)
+pca_summary <- summary(pca_purchase)  # View importance of components
+loadings(pca_purchase)  # View component loadings
+
+##Factor Analysis (needs at least 3 variables)
+#have to combine to make 3 usable variables in the factor analysis (combine likert and measurements)
+combined_data <- iris_csv_purchase[, c(2, 3, 4, 5, 8, 9)]
+factor_analysis_purchase <- factanal(combined_data, factors = 2, scores = "regression")
+print(factor_analysis_purchase)
+
+Sink("PCA_FactorAnalysis_Purchase_Results.txt")
+
+cat("PCA Results:\n")
+print(pca_purchase)
+print(pca_summary)
+cat("PCA Interpretation:\n")
+cat("PCAs provide the proportion of variance explained by each variable. Component 1 suggests buyers that are pickier while component 2 suggests buyers that are more likely to buy as attractiveness goes up.\n")
+
+cat("Factor Analysis results:\n")
+print(factor_analysis_purchase)
+cat("Factor Analysis Interpretation:\n")
+cat("Factor analyses look at latent variables. These results suggest that factor 1 and factor 2 both influence likeliness to buy, but factor 2 (sepal width) is much less influential. There is also evidence suggesting that flower size still does not have a dramatic impact on likeliness to buy, supported by the significant p-value.\n")
+
+sink()
+
+#######THIRTEENTH QUESTION######
+#PCA purchase data without categorical data
+#columns 1 through 5 are numerical
+numerical_data <- iris_csv_purchase[, 1:5]
+pca_result_Q13 <- prcomp(numerical_data, scale. = TRUE)
+print(pca_result_Q13)
+PCA_Q13_summ <- summary(pca_result_Q13)
+
+##scree plot
+scree_plot <- ggplot(data = data.frame(PC = 1:5, Variance = pca_result_Q13$sdev^2 / sum(pca_result_Q13$sdev^2)),
+                     aes(x = PC, y = Variance)) +
+  geom_line() +
+  geom_point() +
+  labs(title = "Scree Plot", x = "Principal Components", y = "Proportion of Variance")
+print(scree_plot)
+
+#loadings of results
+Q13_loadings <- pca_result_Q13$rotation
+
+sink("PCA_Data_Reduction.txt")
+
+cat("PCA Results:\n")
+print(pca_result_Q13)
+print(PCA_Q13_summ)
+cat("Scree Plot and Loadings:\n")
+print(scree_plot)
+print(Q13_loadings)
+
+cat("Interpretations:\n")
+cat("This data was successfully reduced, the lot shows that once we include PC3 the vast majorty of the variance is accounted for.\n")
+cat("The loadings suggest that PC1 defines most of the overall size variation, with a high negative loadings. This shows the negative relationship with measurements and this component. They also show that PC2 is influenced by purchase variables meaning it is an important compoenent in a purchase analysis.\n")
+cat("It seems like PC4 has the most positive loadings which would indicate the greatest description of size variation, but there is are still negative loadings for sepal width and petal measurements.\n")
+sink()
+
+
+###########FOURTEENTH QUESTION##########
+#select only numerical columns from purchase dataset
+Q14_numeric_data <- iris_csv_purchase[, c("sepal_length", "sepal_width", "petal_length", "petal_width", "attractiveness", "likelytobuy")]
+Q14_fa_result <- factanal(Q14_numeric_data, factors = 2, rotation = "varimax")
+print(Q14_fa_result)
+
+sink("Factor_Analysis.txt")
+
+cat("Factor Analysis Results:\n")
+print(Q14_fa_result)
+
+cat("Interpretation:\n")
+cat("Factor 1 is influenced by sepal length, petal length, and petal width showing this as a latent underlying factor to the data based on the high positive loadings. There could also be some form of latentcy in factor 2 from sepal width on attractiveness and buying but its not as inlfuential as factor 1.\n")
+cat("To answer about distance between traits, being far apart indicates a negative correlation of different constructs while being close together indicates a positive correlation and shared variance which suggests they measuer similar characteristics.\n")
+cat("My results were successful in finding 1 significant latent underlying factor (Factor 1) but I would not say it was successful in finding 2 as factor 2 lacked explanatory impact.\n")
+
+sink()
+
+
+
+#######FIFTEENTH QUESTION####
