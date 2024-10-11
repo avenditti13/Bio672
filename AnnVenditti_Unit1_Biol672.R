@@ -539,4 +539,53 @@ sink()
 
 
 
-#######FIFTEENTH QUESTION####
+#######FIFTEENTH QUESTION#####
+#scatter plot of interesting variables: sepal length and petal length seemed to each be an influential factor from above
+library(cluster)
+#choose and pick out variables im interested in to make it easier to plot
+variable1 <- iris_csv_purchase$sepal_length
+variable2 <- iris_csv_purchase$petal_length
+categorical_variable <- iris_csv_purchase$attractiveness #main categorical variable
+
+cluster_scatter_plot <- ggplot(iris_csv_purchase, aes(x = variable1, y = variable2, color = categorical_variable)) +
+  geom_point(size = 3, alpha = 0.6) +
+  labs(title = "Scatter Plot of Sepal Length vs Petal Length",
+       x = "Sepal Length",
+       y = "Petal Length",
+       color = "Attractiveness") +
+  theme_minimal()
+print(cluster_scatter_plot)
+
+##visually inspect scatter plot for picking k clustering value
+#i THINK i see for sure 1 in the bottom left corner, and i feel like i should split the line across into 2 just because ???
+k <- 3 #how many groups i THINK i maybe see not too confident in this one honestly
+
+#i looked it up and it said set.seed before running the k means cluster to make sure every time its run it gets the same clusters
+####dont know why if i have a constant data set but i dont want to risk getting mixed results
+set.seed(123)
+kmeans_result <- kmeans(iris_csv_purchase[, c("sepal_length", "petal_length")], centers = k, nstart = 25)
+print(kmeans_result)
+
+####add the cluster to my data set for making a plot
+iris_csv_purchase$cluster <- as.factor(kmeans_result$cluster)
+#make the cluster plot now that cluster is in my data set
+real_cluster_plot <- ggplot(iris_csv_purchase, aes(x = variable1, y = variable2, color = cluster)) +
+  geom_point(size = 3, alpha = 0.6) +
+  labs(title = "K-Means Clustering of Sepal Length vs Petal Length",
+       x = "Sepal Length",
+       y = "Petal Length",
+       color = "Cluster") +
+  theme_minimal() +
+  scale_color_brewer(palette = "Set1")
+print(real_cluster_plot)
+
+sink("K_Means_Clustering.txt")
+cat("Scatter plot of attractiveness according to interesting variables:\n")
+print(cluster_scatter_plot)
+
+cat("K means clsuter plot:\n")
+print(real_cluster_plot)
+
+sink()
+
+############SIXTEENTH QUESTION######
