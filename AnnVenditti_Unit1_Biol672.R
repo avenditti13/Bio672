@@ -589,3 +589,126 @@ print(real_cluster_plot)
 sink()
 
 ############SIXTEENTH QUESTION######
+##load/install packages needed
+install.packages('MASS')
+install.packages('mclust')
+install.packages('mixtools')
+library(MASS)
+library(mclust)
+library(mixtools)
+library(readr)
+library(ggplot2)
+library(grid)
+##load iris purchase data use PC1
+GMMData <- read_csv("C:/Users/Ann/Downloads/iris_csv_purchase.csv")
+
+##extract relevant single variables and make data frame
+SL <- GMMData$sepal_length  # Sepal length
+SW <- GMMData$sepal_width   # Sepal width
+PL <- GMMData$petal_length  # Petal length
+PW <- GMMData$petal_width   # Petal width
+GMMdataframe <- data.frame(SL, SW, PL, PW)
+
+#composite variable for size of flowers
+sizes <- (SL + SW + PL + PW) / 4  # Averaging the sepal and petal measurements for size
+print(sizes)
+
+#fit distributions to the composite size variable (sizes)
+fitNORM <- fitdistr(sizes, densfun="normal")    # Fit normal distribution
+fitLNORM <- fitdistr(sizes, densfun="log-normal") # Fit log-normal distribution
+fitEXP <- fitdistr(sizes, densfun="exponential") # Fit exponential distribution
+
+#fit Gaussian Mixture Model (GMM) with 2 components
+fitGMM <- normalmixEM(sizes)  # Defaults to 2 density functions
+fitGMM_loglik <- fitGMM$loglik
+
+#calculate Bayesian Information Criterion (BIC) for the GMM
+BIC_GMM <- -2 * fitGMM_loglik + 4 * log(length(sizes))  # 4 parameters for 2-component GMM
+BICfit <- BIC(fitNORM, fitLNORM, fitEXP)  # Compare BIC of normal, log-normal, and exponential
+
+#print all those
+print(fitNORM)
+print(fitLNORM)
+print(fitEXP)
+print(fitGMM)
+print(BICfit)
+print("BIC for GMM:")
+print(BIC_GMM)
+
+#now plot those results
+myplotNORM <- ggplot(GMMdataframe, aes(x = sizes)) + 
+  geom_histogram(aes(y = ..density..)) + 
+  geom_density() + 
+  stat_function(fun = dnorm, color = "red", 
+                args = list(mean = fitNORM$estimate[1], sd = fitNORM$estimate[2])) +
+  ggtitle("Normal Distribution Fit")
+print(myplotNORM)
+
+myplotLOGNorm <- ggplot(GMMdataframe, aes(x = sizes)) + 
+  geom_histogram(aes(y = ..density..)) + 
+  geom_density() + 
+  stat_function(fun = dlnorm, color = "red", 
+                args = list(meanlog = fitLNORM$estimate[1], sdlog = fitLNORM$estimate[2])) +
+  ggtitle("Log-Normal Distribution Fit")
+print(myplotLOGNorm)
+
+myplotEXPDist <- ggplot(GMMdataframe, aes(x = sizes)) + 
+  geom_histogram(aes(y = ..density..)) + 
+  geom_density() + 
+  stat_function(fun = dexp, color = "red", 
+                args = list(rate = fitEXP$estimate[1])) +
+  ggtitle("Exponential Distribution Fit")
+print(myplotEXPDist)
+
+
+#GMM with two components now
+myplot2Components <- ggplot(GMMdataframe, aes(x = sizes)) + 
+  geom_histogram(aes(y = 2 * (..density..))) + 
+  geom_density(aes(y = 2 * (..density..))) + 
+  stat_function(fun = dnorm, color = "red", 
+                args = list(mean = fitGMM$mu[1], sd = fitGMM$sigma[1])) + 
+  stat_function(fun = dnorm, color = "red", 
+                args = list(mean = fitGMM$mu[2], sd = fitGMM$sigma[2])) +
+  ggtitle("Gaussian Mixture Model Fit")
+print(myplot2Components)
+
+
+#combining all plots into a clear grid
+pushViewport(viewport(layout = grid.layout(2, 2)))
+print(myplotNORM, vp = viewport(layout.pos.row = 1, layout.pos.col = 1))
+print(myplotLOGNorm, vp = viewport(layout.pos.row = 1, layout.pos.col = 2))
+print(myplotEXPDist, vp = viewport(layout.pos.row = 2, layout.pos.col = 1))
+print(myplot2Components, vp = viewport(layout.pos.row = 2, layout.pos.col = 2))
+
+
+##export to text and interpret results above
+sink("GMM_Testing_Distributions.txt")
+
+cat("Normal Distribution Results:\n")
+print(fitNORM)
+print(myplotNORM)
+cat("Interpretation:\n")
+cat("After fitting the normal distribution to the composite size variable, we can observe from the lowest BIC value and the fit summary that while the normal distribution best fits the central tendency of the data, the overall fit may not fully capture any latent multimodal tendencies present in the data.\n")
+
+cat("Log Normal Distribution Results:\n")
+print(fitLNORM)
+print(myplotLOGNorm)
+cat("Interpretation:\n")
+cat("The log-normal distribution has a BIC close to that of the normal distribution but slightly higher, indicating that it does not fit the data as well as the normal model.\n")
+cat("This data doesn't appear to be strongly skewed enough for the log-normal model to outperform the normal model.\n")
+
+cat("Exponential Distribution Results:\n")
+print(fitEXP)
+print(myplotEXPDist)
+cat("Interpretation:\n")
+cat("The exponential distribution has a much higher BIC, indicating that it is a poor fit for the composite size variable. This model doesn’t capture the data's variability well and should be ruled out as a candidate for describing the distribution of the size variable.\n")
+
+cat("GMM Results:\n")
+print(BIC_GMM)
+print(myplot2Components)
+cat("Interpretation:\n")
+cat("The GMM has the lowest BIC value (337.86), which means it provides the best fit for the data. This suggests that the underlying distribution is multimodal, meaning there may be multiple subgroups or clusters within the data.\n")
+cat("The fact that the GMM performs better than the single normal model supports the idea that there is latent variability in the data, which simpler models like the normal or log-normal distributions fail to capture.\n")
+
+sink()
+
