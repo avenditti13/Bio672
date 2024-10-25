@@ -124,6 +124,7 @@ evaluate_model <- function(model, testX, testY) {
 }
 
 # Train and evaluate SVM models with different kernels using e1071::svm
+sink("Kernel_Model_Results.txt")
 cat("e1071 SVM Results:\n")
 
 cat("\nLinear Kernel:\n")
@@ -152,6 +153,13 @@ ksvm_poly_eval <- evaluate_model(ksvm_poly, testX, testY)
 cat("\nRBF Kernel:\n")
 ksvm_rbf <- ksvm(Type ~ ., data = trainData, kernel = "rbfdot")
 ksvm_rbf_eval <- evaluate_model(ksvm_rbf, testX, testY)
+
+print(KernelPlot)
+
+cat("The accuracy of these models did perform better than the simpler methods from Question 1.\n")
+cat("The average accuracy was higher for models combined in this section compared to the average accuracy of the models previously used.\n")
+
+sink()
 
 # Visualize results for the best-performing model with a scatterplot
 # Assuming RBF kernel performed best; use Alcohol and Malic as example axes
