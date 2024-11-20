@@ -171,3 +171,136 @@ KernelPlot <- ggplot(wine, aes(x = Alcohol, y = Malic, color = as.factor(Predict
   labs(title = "SVM Classification Results (RBF Kernel)", color = "Predicted Type") +
   theme_minimal()
 print(KernelPlot)
+
+
+
+##AnnVenditti_Unit2.3_Bio672
+##Third section of assignment 2
+
+#install neural net packages
+install.packages("neuralnet")
+
+##libraries needed
+library(neuralnet)
+library(rattle)    #Wine data
+library(caret)     # train-test splitting and evaluation
+library(ggplot2)
+
+##loading in wine data to use in neural net
+data(wine, package = "rattle")
+
+# Data prep = Normalize dataset
+normalize <- function(x) (x - min(x)) / (max(x) - min(x))
+wine_norm <- as.data.frame(lapply(wine[, -1], normalize))
+wine_norm$Type <- wine$Type
+
+# Train-test split
+set.seed(123) #reproducibility
+trainIndex <- createDataPartition(wine_norm$Type, p = 0.7, list = FALSE)
+trainData <- wine_norm[trainIndex, ]
+testData <- wine_norm[-trainIndex, ]
+
+# Training neural network
+nn_model <- neuralnet(Type ~ ., data = trainData, hidden = c(5, 3), linear.output = FALSE)
+
+# Predict on test data
+testX <- testData[, -ncol(testData)]
+predictions <- compute(nn_model, testX)$net.result
+predicted_labels <- apply(predictions, 1, function(x) which.max(x))
+
+# Confusion matrix
+testY <- testData$Type
+confusion <- confusionMatrix(as.factor(predicted_labels), as.factor(testY))
+cat("Neural Network Accuracy:", confusion$overall['Accuracy'], "\n")
+print(confusion)
+
+# Plot neural network
+plot(nn_model)
+
+
+#installing packages for deep neural networks
+
+########I could not download proper python to get tensorflow to work
+########I decided to do the neural net without tensorflow since i tried for 4 days to find a way to download and use it proeprly
+#install.packages("keras")
+#install.packages()
+#library(keras)
+#library(tensorflow)
+#tensorflow::install_tensorflow(delete_env = TRUE)
+#tensorflow::install_tensorflow(version = "2.12.0")
+###I not sure what this is but i looked it up and it said i have to run in in a fresh R session
+#and that i cannot run the deep neural network without having this python thing ????
+##the first line is suppsoed to let R handle the set up i guess
+
+# Install h2o if not already installed
+if (!requireNamespace("h2o", quietly = TRUE)) {
+  install.packages("h2o")
+}
+
+library(h2o)
+library(ggplot2)
+# Start H2O instance
+h2o.init(nthreads = -1, max_mem_size = "1G")
+
+# Load Diamonds dataset preloaded in ggplot2
+data("diamonds")
+
+# Initialize H2O
+h2o.init()
+ #########copied to install latest h20 package becuase it was not running properly
+# Step 1: Install the latest version of the H2O package
+install.packages("h2o", repos = "https://cloud.r-project.org/")
+
+# Step 2: Restart the R session (this step is automatically done once you execute the following)
+.rs.restartR()
+
+# Load required libraries
+library(h2o)
+library(ggplot2) # for the diamonds dataset
+
+# Step 1: Initialize H2O cluster
+h2o.init()
+
+# Step 2: Load the diamonds dataset
+data(diamonds)
+
+# Step 3: Convert ordered factors to regular factors
+diamonds$cut <- as.factor(as.character(diamonds$cut))
+diamonds$color <- as.factor(as.character(diamonds$color))
+diamonds$clarity <- as.factor(as.character(diamonds$clarity))
+
+# Step 4: Convert the dataset to H2O format
+diamonds_h2o <- as.h2o(diamonds)
+
+# Step 5: Verify the structure of the H2O frame
+print(h2o.describe(diamonds_h2o))
+
+## Summary of the H2O frame
+h2o.describe(diamonds_h2o)
+
+# Analysis with H2O
+# Split data into train and test sets
+splits <- h2o.splitFrame(data = diamonds_h2o, ratios = 0.8, seed = 1234)
+train <- splits[[1]]
+test <- splits[[2]]
+
+# Train a simple H2O GBM model to predict 'price' using other variables
+gbm_model <- h2o.gbm(
+  x = c("carat", "cut", "color", "clarity", "depth", "table", "x", "y", "z"),
+  y = "price",
+  training_frame = train,
+  validation_frame = test,
+  ntrees = 50,
+  max_depth = 5,
+  seed = 1234
+)
+print(gbm_model)
+
+#Evaluate the model
+#Model performance on 'test' data
+performance <- h2o.performance(model = gbm_model, newdata = test)
+print(performance)
+
+
+#shutting down H2O cluster 
+h2o.shutdown(prompt = FALSE)
