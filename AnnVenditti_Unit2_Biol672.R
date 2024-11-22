@@ -217,6 +217,7 @@ print(confusion)
 # Plot neural network
 plot(nn_model)
 
+cat("The Neural Net does perform a better job; there is as high accuracy as 1.00 and only goes down to 0.97, which is better than the SVM accuracy.")
 
 #installing packages for deep neural networks
 
@@ -304,3 +305,93 @@ print(performance)
 
 #shutting down H2O cluster 
 h2o.shutdown(prompt = FALSE)
+
+
+##AnnVenditti_Unit2.3_Bio672
+##Fourth section of assignment 2
+
+# Install libraries
+install.packages("randomForest")
+install.packages("ada")
+
+# Load libraries
+library(randomForest)
+library(ada)
+library(caret)
+library(ggplot2)
+
+data(diamonds)
+
+# Create a binary target variable
+diamonds$price_category <- ifelse(diamonds$price > median(diamonds$price), "High", "Low")
+diamonds$price_category <- as.factor(diamonds$price_category)
+
+# Split the data into training and test sets
+set.seed(234)
+train_index4 <- createDataPartition(diamonds$price_category, p = 0.8, list = FALSE)
+train_data4 <- diamonds[train_index4, ]
+test_data4 <- diamonds[-train_index4, ]
+
+# Build the Random Forest model
+rf_model <- randomForest(
+  price_category ~ carat + cut + color + clarity + depth + table + x + y + z,
+  data = train_data4,
+  ntree = 500,
+  importance = TRUE
+)
+
+# Evaluate Random Forest on the test set
+rf_predictions <- predict(rf_model, newdata = test_data4)
+rf_confusion <- confusionMatrix(rf_predictions, test_data4$price_category)
+print(rf_confusion)
+
+
+# Ensure column names are syntactically valid
+##adaboost confusion was not creating because "y.1" not found
+##looked it up said re define data names
+# Ensure 'price_category' is a factor
+# Ensure price_category is a factor
+# Ensure price_category is a factor
+library(ada)
+library(caret)
+
+# Ensure price_category is a factor in both train and test datasets
+train_data4$price_category <- as.factor(train_data4$price_category)
+test_data4$price_category <- as.factor(test_data4$price_category)
+
+# Match levels of price_category in test data to those in train data
+test_data4$price_category <- factor(test_data4$price_category, levels = levels(train_data4$price_category))
+
+# Ensure column alignment between train and test datasets
+required_columns <- colnames(train_data4)
+test_data4 <- test_data4[, required_columns, drop = FALSE]
+
+# Train AdaBoost Model 
+##this take like over 10 minutes to run fully
+ada_model <- ada(
+  price_category ~ carat + cut + color + clarity + depth + table + x + y + z,
+  data = train_data4,
+  iter = 500
+)
+
+###I KEEP GETTING AN "Error in eval(predvars, data, env) : object 'y.1' not found" error when i try and run my ada predictions
+## i have tried everything that i can think of and what online is telling me
+#####if its i am able to predict and eval my ada model below here i fixed it
+
+# Output AdaBoost model details
+print(ada_model)
+
+# Make predictions on the test dataset
+ada_predictions <- predict(ada_model, newdata = test_data4)
+
+#ok i canNOT figure out what is wrong but here is the code anyways
+####ive been working on this for 5 days and i need to be over this error message that makes no sense
+
+# Evaluate AdaBoost model performance
+ada_confusion <- confusionMatrix(ada_predictions, test_data4$price_category)
+
+# Print the confusion matrix
+print("AdaBoost Confusion Matrix:")
+print(ada_confusion)
+
+###I hope that maybe randomly the error will go away :(
